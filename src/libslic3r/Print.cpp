@@ -725,13 +725,13 @@ std::string Print::validate(std::vector<std::string>* warnings) const
                 // if we don't have raft layers, any nozzle diameter is potentially used in first layer
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
-            if (first_layer_height > first_layer_min_nozzle_diameter)
-                return _u8L("First layer height can't be greater than nozzle diameter");
-            
+            if (first_layer_height > 5. * first_layer_min_nozzle_diameter)
+                return _u8L("First layer height is unreasonably large compared to the nozzle diameter");
+
             // validate layer_height
             double layer_height = object->config().layer_height.value;
-            if (layer_height > min_nozzle_diameter)
-                return _u8L("Layer height can't be greater than nozzle diameter");
+            if (layer_height > 5. * min_nozzle_diameter)
+                return _u8L("Layer height is unreasonably large compared to the nozzle diameter");
 
             // Validate extrusion widths.
             std::string err_msg;
