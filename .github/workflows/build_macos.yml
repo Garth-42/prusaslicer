@@ -1,0 +1,45 @@
+name: Build macOS
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build_macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install automake cmake gettext libtool texinfo m4 zlib
+
+      - name: Cache deps build
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: deps/build/destdir
+          key: deps-macos-${{ hashFiles('deps/**') }}
+
+      - name: Build dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p deps/build
+          cd deps/build
+          cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Build PrusaSlicer
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 -DSLIC3R_GUI=0
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure
