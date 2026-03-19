@@ -1,0 +1,56 @@
+name: Build macOS
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build_macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install automake gettext libtool texinfo m4 zlib
+
+      - name: Install CMake 3.27
+        run: |
+          # PrusaSlicer requires CMake < 3.28 (see build docs troubleshooting)
+          curl -sSL https://github.com/Kitware/CMake/releases/download/v3.27.9/cmake-3.27.9-macos-universal.tar.gz -o cmake.tar.gz
+          tar xzf cmake.tar.gz
+          echo "$PWD/cmake-3.27.9-macos-universal/CMake.app/Contents/bin" >> $GITHUB_PATH
+
+      - name: Cache deps build
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: deps/build/destdir
+          key: deps-macos-${{ hashFiles('deps/**') }}
+
+      - name: Build dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p deps/build
+          cd deps/build
+          cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
+          for attempt in 1 2 3; do
+            make -j$(sysctl -n hw.ncpu) && break
+            echo "Attempt $attempt failed, retrying in $((attempt * 10))s..."
+            sleep $((attempt * 10))
+          done
+
+      - name: Build PrusaSlicer
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 -DSLIC3R_GUI=0
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure
