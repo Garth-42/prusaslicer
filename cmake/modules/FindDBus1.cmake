@@ -1,0 +1,12 @@
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(DBus1 IMPORTED_TARGET dbus-1)
+    if(DBus1_FOUND)
+        if(NOT TARGET DBus1::dbus-1)
+            add_library(DBus1::dbus-1 ALIAS PkgConfig::DBus1)
+        endif()
+    endif()
+endif()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(DBus1 DEFAULT_MSG DBus1_LIBRARIES DBus1_INCLUDE_DIRS)
