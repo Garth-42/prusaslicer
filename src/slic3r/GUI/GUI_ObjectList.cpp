@@ -3381,9 +3381,9 @@ static double get_max_layer_height(const int extruder_idx)
     int extruder_idx_zero_based = std::max(0, extruder_idx - 1);
     double max_layer_height = config.opt_float("max_layer_height", extruder_idx_zero_based);
 
-    // In case max_layer_height is set to zero, it should default to 75 % of nozzle diameter:
+    // In case max_layer_height is set to zero, it should default to 150 % of nozzle diameter:
     if (max_layer_height < EPSILON)
-        max_layer_height = 0.75 * config.opt_float("nozzle_diameter", extruder_idx_zero_based);
+        max_layer_height = 1.5 * config.opt_float("nozzle_diameter", extruder_idx_zero_based);
 
     return max_layer_height;
 }

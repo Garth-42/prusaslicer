@@ -2321,7 +2321,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This is the highest printable layer height for this extruder, used to cap "
                    "the variable layer height and support layer height. Maximum recommended layer height "
                    "is 75% of the extrusion width to achieve reasonable inter-layer adhesion. "
-                   "If set to 0, layer height is limited to 75% of the nozzle diameter.");
+                   "If set to 0, layer height is limited to 150% of the nozzle diameter.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
